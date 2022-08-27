@@ -1,8 +1,12 @@
 import requests
 import json
 # import imp
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
+load_dotenv('.env')
+# config = dotenv_values(".env")
 
 class NotFoundException(Exception):
     def __init__(self, message, code):
@@ -20,7 +24,8 @@ class GithubExportService:
     url = "https://api.github.com/users/Akorede28"
     owner = "akorede28"
     repo = "e-commerce-API"
-    commit_sha = "348994e66aed952ef73e5d15fc44e70f2c2b55f8"
+    commit_sha = os.getenv('commit_sha')
+    
 
     def get_commit_request(self,  owner, repo):
 
@@ -34,6 +39,7 @@ class GithubExportService:
             while i < 3:
                 response = requests.get(commit_url)
                 i += 1
+                break
             raise NotFoundException('no repo found', 404)
 
        
@@ -52,9 +58,10 @@ class GithubExportService:
             while i < 3:
                 response = requests.get(pull_url)
                 i += 1
-                raise NotFoundException('no repo found', 404)
-            print(response.json())
-            return response
+                break
+            raise NotFoundException('no repo found', 404)
+        print(response.json())
+        return response
 
     
     def make_file(self, response):
