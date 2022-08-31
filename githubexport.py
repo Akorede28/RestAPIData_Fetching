@@ -1,63 +1,60 @@
+from distutils.command.config import config
 import requests
 import json
-# import imp
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv('.env')
-# config = dotenv_values(".env")
+parent = Path(__file__).parent
+file_path = parent / 'github.json'
 
 class NotFoundException(Exception):
     def __init__(self, message, code):
         self._message = message
         self._code = code
-        print(self.__cause__)
-        super(message)
+        super().__init__(message, code)
 
-parent = Path(__file__).parent
-file_path = parent / 'github.json'
+
+class Config:
+    url = os.getenv('URL')
+    owner = os.getenv('OWNER')
+    repo = os.getenv('REPO')
+    commit_sha = os.getenv('commit_sha')
+
+    commit_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+    pull_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{commit_sha}/pulls"
+
 
 class GithubExportService:
 
-
-    url = "https://api.github.com/users/Akorede28"
-    owner = "akorede28"
-    repo = "e-commerce-API"
-    commit_sha = os.getenv('commit_sha')
-    
-
-    def get_commit_request(self,  owner, repo):
-
-        commit_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+    def get_commit_request(self, commit_url):
 
         response = requests.get(commit_url)
 
         if(str(response.status_code).startswith('4')):
             i = 0
 
-            while i < 3:
+            while i <= 3:
                 response = requests.get(commit_url)
                 i += 1
+                print(i, "commit")
                 break
-            raise NotFoundException('no repo found', 404)
-
-       
+            raise NotFoundException('no repo found', 404)      
         print(response.json())
         return response
 
-    def get_pull_request(self, owner, repo, commit_sha):
+    def get_pull_request(self, pull_url):
         
-        pull_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{commit_sha}/pulls"
-
         response = requests.get(pull_url)
 
         if(str(response.status_code).startswith('4')):
             i = 0
 
-            while i < 3:
+            while i <= 3:
                 response = requests.get(pull_url)
                 i += 1
+                print(i, "pull")
                 break
             raise NotFoundException('no repo found', 404)
         print(response.json())
@@ -75,13 +72,10 @@ class GithubExportService:
 
 
 github = GithubExportService()
-url = github.url
-own = github.owner
-rep = github.repo
-sha = github.commit_sha
+config = Config()
 
-res = github.get_commit_request(own, rep)
-pull = github.get_pull_request(own, rep, sha)
+res = github.get_commit_request(config.commit_url)
+pull = github.get_pull_request(config.pull_url)
 github.make_file(res)
 
 
