@@ -94,7 +94,7 @@ class GithubExportService:
             with open(file_path, 'x') as f:
                     json.dump(response.json(), f)
 
-# transform()
+transform()
 
 github = GithubExportService()
 config = Config()
